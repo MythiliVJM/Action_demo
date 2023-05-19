@@ -31,30 +31,34 @@ jobs:
           path: build/
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: built-app
-          path: build/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          personal_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-
+   apiVersion: v1
+kind: Service
+metadata:
+  name: deploy-react-kubernetes-service
+  labels:
+    app: app
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    name: http
+    nodePort: 30080
+  selector:
+    app: app
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deploy-react-kubernetes-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+      - name: deploy-react-kubernetes
+        image: registry.<ibm_cloud_region>.bluemix.net/<your_namespace>/deploy-react-kubernetes
+        ports:
+        - containerPort: 3000
