@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main # replace with your branch name
+      - main
 
 jobs:
   build:
@@ -19,46 +19,21 @@ jobs:
           node-version: 14
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: built-app
-          path: build/
-
   deploy:
-   apiVersion: v1
-kind: Service
-metadata:
-  name: deploy-react-kubernetes-service
-  labels:
-    app: app
-spec:
-  type: NodePort
-  ports:
-  - port: 3000
-    name: http
-    nodePort: 30080
-  selector:
-    app: app
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: deploy-react-kubernetes-deployment
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: app
-    spec:
-      containers:
-      - name: deploy-react-kubernetes
-        image: registry.<ibm_cloud_region>.bluemix.net/<your_namespace>/deploy-react-kubernetes
-        ports:
-        - containerPort: 3000
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: build
