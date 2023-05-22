@@ -51,3 +51,11 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: npx gh-pages -d build -b gh-pages --dotfiles --token ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Use the GITHUB_TOKEN
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }}
+
